@@ -3,6 +3,7 @@ package online
 type Hub struct {
 	Clients    map[*Client]bool // mapa de clientes
 	Broadcast  chan []byte      // canal donde llegan mensajes para todos
+	counter    int              // canal global para el conteno de los clicks
 	Register   chan *Client     // canal para registrar clientes
 	Unregister chan *Client     // canal para desregistrar clientes
 }
@@ -11,6 +12,7 @@ func NewHub() *Hub {
 	hub := &Hub{
 		Clients:    make(map[*Client]bool),
 		Broadcast:  make(chan []byte),
+		counter:    0,
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
 	}
@@ -33,10 +35,11 @@ func (h *Hub) Run() {
 				close(client.Send)        // y cerramos el canal
 			}
 
-		case message := <-h.Broadcast:
+		case <-h.Broadcast:
+			h.counter++ // incrementamos el contador
 			for client := range h.Clients {
 				select {
-				case client.Send <- message: // enviamos el mensaje al canal de cada cliente
+				case client.Send <- []byte{byte(h.counter)}: // enviamos el numero de click al cliente
 				default:
 
 					// Si el canal esta lleno cerramos el canal lleno
