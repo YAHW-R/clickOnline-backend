@@ -1,4 +1,4 @@
-package clickOnline
+package main
 
 import (
 	"log"
